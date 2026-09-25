@@ -1,4 +1,4 @@
-Name:           reboot-mollyguard
+Name:           reboot-guard
 Version:        1.0
 Release:        1%{?dist}
 Summary:        Reboot guard that requires the operator to type the machine name
@@ -11,7 +11,7 @@ BuildArch:      noarch
 Requires:       bash >= 4.0
 
 %description
-reboot-mollyguard installs a wrapper at /usr/local/sbin/reboot.
+reboot-guard installs a wrapper at /usr/local/sbin/reboot.
 Before the machine reboots, the operator types the name of the
 machine. A wrong name cancels the reboot. The wrapper never
 changes /sbin/reboot. Calling /sbin/reboot reboots without a

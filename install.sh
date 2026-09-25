@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# install.sh — install or uninstall the reboot-mollyguard wrapper.
+# install.sh — install or uninstall the reboot-guard wrapper.
 #
 # Usage:
 #   sudo ./install.sh              install the wrapper
@@ -23,7 +23,7 @@ case "${1:-}" in
             rm -f "$DEST"
             echo "Removed $DEST."
         else
-            echo "$DEST is not the mollyguard wrapper; leaving it in place." >&2
+            echo "$DEST is not the reboot-guard wrapper; leaving it in place." >&2
             exit 1
         fi
         exit 0

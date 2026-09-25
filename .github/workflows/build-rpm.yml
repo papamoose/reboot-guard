@@ -1,4 +1,4 @@
-# Builds a noarch RPM for reboot-mollyguard.
+# Builds a noarch RPM for reboot-guard.
 #
 # The package is a single bash script, so one job on a RHEL-based
 # builder (UBI 9) is enough for RHEL and SLES targets.
@@ -46,20 +46,20 @@ jobs:
           mkdir -p ~/rpmbuild/{BUILD,BUILDROOT,RPMS,SOURCES,SPECS,SRPMS}
 
           # Source tarball with the top-level dir %setup expects.
-          tar czf ~/rpmbuild/SOURCES/reboot-mollyguard-${VERSION}.tar.gz \
-            --transform "s|^|reboot-mollyguard-${VERSION}/|" \
+          tar czf ~/rpmbuild/SOURCES/reboot-guard-${VERSION}.tar.gz \
+            --transform "s|^|reboot-guard-${VERSION}/|" \
             reboot install.sh README.md
 
           # Set the version from the tag or date.
-          sed -i "s/^Version:.*/Version:        ${VERSION}/" reboot-mollyguard.spec
-          cp reboot-mollyguard.spec ~/rpmbuild/SPECS/
+          sed -i "s/^Version:.*/Version:        ${VERSION}/" reboot-guard.spec
+          cp reboot-guard.spec ~/rpmbuild/SPECS/
 
-          rpmbuild -ba ~/rpmbuild/SPECS/reboot-mollyguard.spec
+          rpmbuild -ba ~/rpmbuild/SPECS/reboot-guard.spec
 
       - name: Verify
         run: |
           set -euo pipefail
-          RPM=~/rpmbuild/RPMS/noarch/reboot-mollyguard-*.rpm
+          RPM=~/rpmbuild/RPMS/noarch/reboot-guard-*.rpm
           rpm -qp --queryformat '%{NAME}-%{VERSION}-%{RELEASE} (%{ARCH})\n' "$RPM"
           echo "--- files ---"
           rpm -qpl "$RPM"
@@ -74,7 +74,7 @@ jobs:
       - name: Upload RPM
         uses: actions/upload-artifact@v7
         with:
-          name: reboot-mollyguard-rpm
+          name: reboot-guard-rpm
           path: dist/*
           if-no-files-found: error
 

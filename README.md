@@ -1,4 +1,4 @@
-# reboot-mollyguard
+# reboot-guard
 
 A wrapper for the `reboot` command. Before the machine reboots, the operator
 types the name of the machine they are on. If the name is wrong, the wrapper
@@ -41,8 +41,8 @@ type -a reboot    # first line must be /usr/local/sbin/reboot
 Or from the release RPM:
 
 ```sh
-sudo dnf install reboot-mollyguard-*.rpm     # RHEL
-sudo zypper in reboot-mollyguard-*.rpm       # SLES
+sudo dnf install reboot-guard-*.rpm     # RHEL
+sudo zypper in reboot-guard-*.rpm       # SLES
 ```
 
 ## Uninstall
@@ -119,6 +119,6 @@ it breaks the STIG reboot checks.
 |----------------------|-------------------------------------------|
 | `reboot`             | The wrapper installed to `/usr/local/sbin` |
 | `install.sh`         | Installs and uninstalls the wrapper       |
-| `reboot-mollyguard.spec` | RPM spec file                       |
+| `reboot-guard.spec`    | RPM spec file                       |
 | `tests/run.sh`       | Wrapper dry-run tests                     |
 | `.github/workflows/` | CI: test suite and RPM build              |
