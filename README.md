@@ -54,18 +54,18 @@ sudo ./install.sh --uninstall
 ## Example
 
 ```
-$ reboot
-You are about to reboot: hades
-Type the machine name (hades) to confirm, anything else cancels: hades
-Rebooting hades ...
+# reboot
+You are about to reboot: web-01
+Type the machine name (web-01) to confirm, anything else cancels: web-01
+Rebooting web-01 ...
 ```
 
 Wrong input cancels the reboot:
 
 ```
-$ reboot
-You are about to reboot: hades
-Type the machine name (hades) to confirm, anything else cancels: hades2
+# reboot
+You are about to reboot: web-01
+Type the machine name (web-01) to confirm, anything else cancels: web-02
 Reboot cancelled.
 ```
 
