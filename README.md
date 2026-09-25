@@ -38,6 +38,13 @@ sudo install -m 0755 reboot /usr/local/sbin/reboot
 type -a reboot    # first line must be /usr/local/sbin/reboot
 ```
 
+Or from the release RPM:
+
+```sh
+sudo dnf install reboot-mollyguard-*.rpm     # RHEL
+sudo zypper in reboot-mollyguard-*.rpm       # SLES
+```
+
 ## Uninstall
 
 ```sh
@@ -61,6 +68,21 @@ You are about to reboot: hades
 Type the machine name (hades) to confirm, anything else cancels: hades2
 Reboot cancelled.
 ```
+
+## Packaging
+
+The repository builds a noarch RPM in GitHub Actions. The package does
+not depend on the architecture. One RPM installs on amd64, arm64, and
+other architectures.
+
+- On pushes to `main`, pull requests, and tags, CI builds the RPM and
+  SRPM and uploads them as artifacts.
+- A pushed tag starting with `v` creates a GitHub release with the
+  RPM and SRPM. The tag sets the version, for example `v1.0`. Untagged
+  builds use the UTC date as the version.
+- On pushes to `main` and pull requests, CI runs the dry-run test
+  suite. The tests use a fake `reboot` binary. They never reboot the
+  machine.
 
 ## STIG compliance
 
@@ -93,7 +115,10 @@ it breaks the STIG reboot checks.
 
 ## Files
 
-| File      | Purpose                                        |
-|-----------|------------------------------------------------|
-| `reboot`  | The wrapper installed to `/usr/local/sbin`     |
-| `install.sh` | Installs and uninstalls the wrapper         |
+| File                 | Purpose                                   |
+|----------------------|-------------------------------------------|
+| `reboot`             | The wrapper installed to `/usr/local/sbin` |
+| `install.sh`         | Installs and uninstalls the wrapper       |
+| `reboot-mollyguard.spec` | RPM spec file                       |
+| `tests/run.sh`       | Wrapper dry-run tests                     |
+| `.github/workflows/` | CI: test suite and RPM build              |
