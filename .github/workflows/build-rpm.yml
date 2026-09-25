@@ -1,0 +1,79 @@
+# Builds a noarch RPM for reboot-mollyguard.
+#
+# The package is a single bash script, so one job on a RHEL-based
+# builder (UBI 9) is enough for RHEL and SLES targets.
+#
+# Version comes from the git tag (v1.0 -> 1.0). Untagged builds use
+# the UTC date (20260924).
+
+name: build-rpm
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build-rpm:
+    runs-on: ubuntu-latest
+    container:
+      image: registry.access.redhat.com/ubi9/ubi:latest
+    steps:
+      # The minimal UBI image has no git; install it before checkout.
+      - name: Install build tools
+        run: dnf install -y git rpm-build
+
+      - name: Check out
+        uses: actions/checkout@v4
+
+      - name: Determine version
+        id: ver
+        run: |
+          if [[ "${GITHUB_REF}" == refs/tags/v* ]]; then
+            echo "version=${GITHUB_REF#refs/tags/v}" >> "$GITHUB_OUTPUT"
+          else
+            echo "version=$(date -u +%Y%m%d)" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Build SRPM and RPM
+        run: |
+          set -euo pipefail
+          VERSION="${{ steps.ver.outputs.version }}"
+
+          mkdir -p ~/rpmbuild/{BUILD,BUILDROOT,RPMS,SOURCES,SPECS,SRPMS}
+
+          # Source tarball with the top-level dir %setup expects.
+          tar czf ~/rpmbuild/SOURCES/reboot-mollyguard-${VERSION}.tar.gz \
+            --transform "s|^|reboot-mollyguard-${VERSION}/|" \
+            reboot install.sh README.md
+
+          # Set the version from the tag or date.
+          sed -i "s/^Version:.*/Version:        ${VERSION}/" reboot-mollyguard.spec
+          cp reboot-mollyguard.spec ~/rpmbuild/SPECS/
+
+          rpmbuild -ba ~/rpmbuild/SPECS/reboot-mollyguard.spec
+
+      - name: Verify
+        run: |
+          set -euo pipefail
+          RPM=~/rpmbuild/RPMS/noarch/reboot-mollyguard-*.rpm
+          rpm -qp --queryformat '%{NAME}-%{VERSION}-%{RELEASE} (%{ARCH})\n' "$RPM"
+          echo "--- files ---"
+          rpm -qpl "$RPM"
+          echo "--- requires ---"
+          rpm -qp --requires "$RPM"
+
+      - name: Collect artifacts
+        run: |
+          mkdir -p dist
+          cp ~/rpmbuild/RPMS/noarch/*.rpm ~/rpmbuild/SRPMS/*.src.rpm dist/
+
+      - name: Upload RPM
+        uses: actions/upload-artifact@v4
+        with:
+          name: reboot-mollyguard-rpm
+          path: dist/*
+          if-no-files-found: error
