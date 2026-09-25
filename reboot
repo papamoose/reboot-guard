@@ -1,0 +1,69 @@
+#!/usr/bin/env bash
+#
+# reboot — confirmation guard around the system reboot command.
+#
+# Forces the operator to type the name of the machine they are on before
+# the reboot actually happens. Typing anything else cancels.
+#
+# Install (as root; works on RHEL and SLES):
+#   install -m 0755 reboot /usr/local/sbin/reboot
+#   # confirm the wrapper wins in PATH:
+#   type -a reboot
+#   # expected first entry: /usr/local/sbin/reboot
+#
+# Bypass the guard (works as expected, no prompt):
+#   /sbin/reboot            (or /usr/sbin/reboot)
+#
+# Notes:
+#   * This is an operational guardrail, not a security boundary: anyone
+#     who can run /sbin/reboot can already reboot the box.
+#   * Non-interactive use (no TTY) is refused — call /sbin/reboot
+#     directly from scripts, cron, or automation.
+
+set -u
+
+# ---------------------------------------------------------------------------
+# Locate the real reboot binary, making sure we never invoke ourselves.
+# ---------------------------------------------------------------------------
+self_path=$(readlink -f "$0" 2>/dev/null || echo "$0")
+
+REAL_REBOOT=""
+for candidate in /usr/sbin/reboot /sbin/reboot /bin/reboot; do
+    [ -x "$candidate" ] || continue
+    cand_path=$(readlink -f "$candidate" 2>/dev/null || echo "$candidate")
+    if [ "$cand_path" != "$self_path" ]; then
+        REAL_REBOOT="$candidate"
+        break
+    fi
+done
+
+if [ -z "$REAL_REBOOT" ]; then
+    echo "reboot: guard cannot find the real reboot binary; aborting." >&2
+    exit 1
+fi
+
+# ---------------------------------------------------------------------------
+# Require an interactive terminal; scripts must use the real binary.
+# ---------------------------------------------------------------------------
+if [ ! -t 0 ]; then
+    echo "reboot: not a terminal. Use $REAL_REBOOT directly for scripted reboots." >&2
+    exit 1
+fi
+
+# ---------------------------------------------------------------------------
+# Confirmation prompt.
+# ---------------------------------------------------------------------------
+hn_full=$(hostname 2>/dev/null || uname -n)
+hn_short=$(hostname -s 2>/dev/null || uname -n)
+
+echo "You are about to reboot: $hn_full"
+printf 'Type the machine name (%s) to confirm, anything else cancels: ' "$hn_short"
+read -r answer || answer=""
+
+if [ "${answer,,}" != "${hn_short,,}" ] && [ "${answer,,}" != "${hn_full,,}" ]; then
+    echo "Reboot cancelled."
+    exit 1
+fi
+
+echo "Rebooting $hn_full ..."
+exec "$REAL_REBOOT" "$@"
