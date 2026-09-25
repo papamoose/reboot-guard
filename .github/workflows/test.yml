@@ -1,0 +1,23 @@
+# Dry-run tests for the reboot wrapper.
+#
+# The tests run against a fake reboot binary; they never reboot
+# the machine.
+
+name: test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+
+      - name: Run wrapper dry-run tests
+        run: bash tests/run.sh
