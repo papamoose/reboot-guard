@@ -77,3 +77,13 @@ jobs:
           name: reboot-mollyguard-rpm
           path: dist/*
           if-no-files-found: error
+
+      # Tagged builds create a GitHub release with the RPM and SRPM.
+      # Branch and PR builds only upload the artifact.
+      - name: Create GitHub release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
