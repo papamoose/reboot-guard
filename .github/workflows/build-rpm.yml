@@ -27,7 +27,7 @@ jobs:
         run: dnf install -y git rpm-build
 
       - name: Check out
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Determine version
         id: ver
@@ -72,7 +72,7 @@ jobs:
           cp ~/rpmbuild/RPMS/noarch/*.rpm ~/rpmbuild/SRPMS/*.src.rpm dist/
 
       - name: Upload RPM
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: reboot-mollyguard-rpm
           path: dist/*
@@ -80,10 +80,12 @@ jobs:
 
       # Tagged builds create a GitHub release with the RPM and SRPM.
       # Branch and PR builds only upload the artifact.
+      # RELEASE_TOKEN (a PAT with Contents: write) overrides the default
+      # GITHUB_TOKEN when the repo restricts its permissions to read-only.
       - name: Create GitHub release
         if: startsWith(github.ref, 'refs/tags/')
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           files: dist/*
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN || secrets.GITHUB_TOKEN }}
