@@ -62,6 +62,35 @@ Type the machine name (hades) to confirm, anything else cancels: hades2
 Reboot cancelled.
 ```
 
+## STIG compliance
+
+Reviewed against the RHEL 9 (V2R9) and SLES 15 STIG control sets. The
+wrapper causes no findings if you follow the steps below.
+
+- Reboot auditing (RHEL-09-654195). The STIG audits execution of
+  `/usr/sbin/reboot`. The wrapper executes that binary directly, so
+  the audit record still fires. There is no audit gap.
+- File integrity (RHEL-09-651010, RHEL-09-651015, SLES-15-010419).
+  AIDE monitors `/usr` by default. The wrapper shows as an added file
+  in AIDE reports until you update the baseline.
+- File permission scans. The wrapper is 0755 root:root. It is not
+  SUID, not world-writable, and not orphaned.
+- SELinux. The wrapper is a plain script in the default `/usr`
+  context. It runs under enforcing mode. Check the context after
+  install with `ls -Z /usr/local/sbin/reboot`.
+
+Steps for a clean scan:
+
+1. Install with the RPM so the file is package-managed. Confirm with
+   `rpm -qf /usr/local/sbin/reboot`.
+2. Update the AIDE baseline: `sudo aide --update`.
+3. Record the wrapper as an approved local change in the system
+   security documentation.
+
+Do not install the wrapper over `/usr/sbin/reboot`. That file belongs
+to the `systemd` package. Overwriting it is a vendor-file finding and
+it breaks the STIG reboot checks.
+
 ## Files
 
 | File      | Purpose                                        |
